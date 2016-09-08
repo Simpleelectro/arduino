@@ -1,0 +1,97 @@
+#include <LiquidCrystal.h>  // Библиотеки
+
+LiquidCrystal lcd(9, 8, 7, 6, 5, 4); // (RS, E, DB4, DB5, DB6, DB7)
+
+#define gerk 10// пин, который подключен к геркону
+#define Interval 15000UL
+
+float dist = 0;
+float distobr = 0.002;
+float circ = 2.23;
+float speedvel = 0;
+float speeddop = 0;
+int zn1 = 0;
+int state = 0;
+
+void setup(){
+  //приветственный экранчик
+  lcd.begin(16, 2);                  // Задаем размерность экрана
+
+  lcd.setCursor(0, 0);               // Устанавливаем курсор в начало 1 строки
+  lcd.print("      Hello!");                   //
+      
+  lcd.setCursor(0, 1);              // Устанавливаем курсор в начало 2 строки
+  lcd.print("    WELLCOME!");         // Выводим текст приветствия
+  delay(3000);
+  Serial.begin(9600);
+ }
+
+
+//прорисовка экранчика
+
+void displayZnach(){
+
+ lcd.setCursor(0, 0);               
+ lcd.print("                "); 
+ lcd.setCursor(0, 0);  
+ lcd.print("Speed= ");
+ lcd.setCursor(7, 0);  
+ lcd.print(speedvel);
+ lcd.setCursor(13, 0);
+ lcd.print("kmh");
+
+ lcd.setCursor(0, 1);               
+ lcd.print("                ");
+ lcd.setCursor(0, 1);  
+ lcd.print("Dist= ");
+ lcd.setCursor(6, 1);             
+ lcd.print(dist);
+ lcd.setCursor(14, 1);
+ lcd.print("km");
+
+}
+
+
+void loop(){
+ pinMode(gerk, INPUT);
+
+//время крайнего действия
+static unsigned long prevMill;
+unsigned long currentMillis = millis();
+
+  zn1 = digitalRead(gerk);
+if (state == 0 && zn1 == 1){
+  //Serial.print(zn1);
+  //считываем расстояние, скорость
+  if (zn1 == 1) {
+    speeddop += circ;
+    dist += distobr;
+    delay(10);
+    state=1;
+}else if (zn1 ==0 ){
+    state=0;
+ 
+}
+    
+if(currentMillis - prevMill > Interval) {
+    // сохраняем время последнего переключения
+    prevMill = currentMillis;  
+
+//переводим скорость в читаемый вид
+speedvel = speeddop*4/16.66;
+
+
+// отображаем раз в секунду
+
+}
+
+if (currentMillis - prevMill <= Interval && zn1 == 0){
+    speeddop = 0;
+  }
+
+displayZnach();
+
+delay(100);
+
+
+}
