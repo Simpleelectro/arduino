@@ -1,0 +1,100 @@
+#include <LiquidCrystal.h> 
+#include <Wire.h>
+
+LiquidCrystal lcd(9, 8, 7, 6, 5, 4); // (RS, E, DB4, DB5, DB6, DB7)
+
+#define gerk 10// пин, который подключен к геркону
+#define Interval 15000UL
+
+int state = 0;
+float count = 0;
+float speedv = 0;
+float dist = 0;
+float speedvold = 0;
+float distold = 0;
+float c[]={0,0,0,0,0,0};
+float speedvel=0;
+long timelcd = 0;
+int zn1=0;
+void setup(){
+  //приветственный экранчик
+  lcd.begin(16, 2);                  // Задаем размерность экрана
+
+  lcd.setCursor(0, 0);               // Устанавливаем курсор в начало 1 строки
+  lcd.print("      Hello!");                   //
+      
+  lcd.setCursor(0, 1);              // Устанавливаем курсор в начало 2 строки
+  lcd.print("   WELCOME!");         // Выводим текст
+  delay(3000);
+  Serial.begin(9600);
+  pinMode(gerk, INPUT);
+
+ }
+
+
+
+
+void displayZnach(){
+if (speedv != speedvold || dist !=distold){
+ lcd.setCursor(0, 0);               
+ lcd.print("                "); 
+ lcd.setCursor(0, 0);  
+ lcd.print("Speed= ");
+ lcd.setCursor(7, 0);  
+ lcd.print(speedvel);
+ lcd.setCursor(13, 0);
+ lcd.print("kmh");
+
+ lcd.setCursor(0, 1);               
+ lcd.print("                ");
+ lcd.setCursor(0, 1);  
+ lcd.print("Dist= ");
+ lcd.setCursor(6, 1);             
+ lcd.print(dist);
+ lcd.setCursor(14, 1);
+ lcd.print("km");
+ speedvold = speedv;
+ distold = dist;
+}
+
+}
+
+
+void loop(){
+
+//время крайнего действия
+
+unsigned long currentMillis = millis();
+
+zn1 = digitalRead(gerk);
+if (state == 0 && zn1 == 1){
+    //Serial.print(zn1);
+    count++;
+    for(int i = 0; i<4; i++){
+        c[i] = c[i+1];
+        Serial.println(c[i]);
+    }
+    c[4]=currentMillis;
+    state=1;
+}else if (zn1 == 0 ){
+    state=0;
+}
+dist = count * 0.002;
+speedvel = 39150/(currentMillis-c[0]);
+
+    
+if ((currentMillis - c[4]) > 10000){
+  speedvel = 0;
+  //Serial.println(c[0]);
+  }
+  if((currentMillis - timelcd) > 1000){
+     displayZnach();
+     timelcd = currentMillis;
+  }
+//Serial.println(c[0]);
+//Serial.println(currentMillis);
+//Serial.println("++++");
+delay(1);
+
+
+}
